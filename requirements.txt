@@ -1,0 +1,22 @@
+# Velozen AI — Dependencies
+# Install with: pip install -r requirements.txt
+
+# Data
+pandas==2.2.2
+numpy==1.26.4
+
+# Forecasting
+prophet==1.1.5
+lightgbm==4.3.0
+scikit-learn==1.4.2
+
+# Visualization / Dashboard
+plotly==5.22.0
+dash==2.17.0
+
+# Utilities
+python-dotenv==1.0.1
+faker==25.0.0
+
+# Notebooks
+jupyter==1.0.0
