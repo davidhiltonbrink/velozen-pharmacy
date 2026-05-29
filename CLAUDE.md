@@ -43,8 +43,8 @@
 
 1. ✅ Project scaffold + CLAUDE.md
 2. ✅ Synthetic data generator (realistic dispensing records, no real data needed)
-3. 🔧 Core forecasting model pipeline (LightGBM, offline validation) — 90% done, date-alignment fix needed
-4. 🔲 Basic dashboard skeleton (mock data, for demo purposes)
+3. ✅ Core forecasting model pipeline (LightGBM, offline validation) — median MAPE 19.4% (chronic 13.1%, seasonal 27.9%)
+4. ✅ Basic dashboard skeleton (mock data, for demo purposes)
 5. 🔲 Real data ingestion pipeline (PMS exports from pilot pharmacies)
 6. 🔲 Hospital data integration (HL7/FHIR — hardest step, comes last in v1)
 7. 🔲 Recommendation + alert engine (layered on validated forecasts)
@@ -172,4 +172,16 @@ velozen-pharmacy/
   - Abandoned Prophet — Python 3.14 incompatible with bundled Stan binary
   - Global model architecture: one LightGBM across all SKUs (lag features, rolling means, calendar, regressors)
   - Train on 2024, evaluate on 2025 H1
-- **Next:** Run `python src/models/train_and_evaluate.py` to verify date-alignment fix and get eval metrics, then step 4 (dashboard skeleton)
+
+**Session 3: 5/29/26**
+- Ran forecasting pipeline — date-alignment fix confirmed working (2,496/2,496 rows matched)
+- Eval results: median MAPE 19.4%, chronic meds 13.1%, seasonal 27.9%, worst SKU Oseltamivir 37.9%
+- Will become more robust with years of real pharmacy data
+- Outputs written: `data/synthetic/forecasts.csv`, `eval_metrics.csv`, `feature_importance.csv`
+- Step 3 complete.
+- Built Streamlit dashboard skeleton (`src/dashboard/app.py`) — COMPLETE
+  - Four pages: Overview, Forecast Explorer, SKU Detail, Model Insights
+  - Reads directly from `data/synthetic/` CSVs (forecasts, eval_metrics, feature_importance)
+  - Plotly charts: MAPE histogram, actual vs forecast line chart, feature importance bar, bias scatter
+  - Run: `streamlit run src/dashboard/app.py`
+- Step 4 complete. **Next:** Step 5 — real data ingestion pipeline (PMS exports from pilot pharmacies)
