@@ -27,6 +27,8 @@ warnings.filterwarnings("ignore")
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from models.forecaster import GlobalForecaster, build_features, FEATURE_COLS
+from ingestion import source_synthetic
+from ingestion.normalize import build_training_set
 
 # ---------------------------------------------------------------------------
 # Config
@@ -47,15 +49,25 @@ HIGH_ERROR_MAPE = 25.0
 # Data prep
 # ---------------------------------------------------------------------------
 
-def load_weekly(disp_file: str) -> pd.DataFrame:
-    df = pd.read_csv(disp_file, parse_dates=["date"])
-    # Normalize to Monday of each week so dates align with pd.date_range(freq="7D")
-    df["ds"] = df["date"] - pd.to_timedelta(df["date"].dt.dayofweek, unit="D")
-    return (
-        df.groupby(["ds", "ndc", "drug_name", "category"])
-        .agg(y=("rx_fill_count", "sum"))
-        .reset_index()
-    )
+def load_weekly() -> pd.DataFrame:
+    """
+    Load and combine all active data sources via the normalization layer.
+    Add additional sources here as they become available:
+
+        from ingestion import source_synthea, source_cms
+        synthea_df = source_synthea.load(...)
+        cms_df     = source_cms.load(...)
+        combined   = build_training_set(
+            [synthetic_df, synthea_df, cms_df],
+            source_weights={"pms_pionerrx": 3.0, "synthea": 0.8, "synthetic": 0.5},
+        )
+
+    For now, only the synthetic source is active.
+    """
+    synthetic_df = source_synthetic.load(DISP_FILE, CATALOG_FILE)
+    combined = build_training_set([synthetic_df])
+    # Rename 'fills' → 'y' as expected by the forecaster
+    return combined.rename(columns={"fills": "y"})
 
 
 # ---------------------------------------------------------------------------
@@ -85,7 +97,7 @@ def compute_metrics(actual: np.ndarray, predicted: np.ndarray) -> dict:
 
 def run_pipeline():
     print("Loading weekly dispensing data...")
-    weekly  = load_weekly(DISP_FILE)
+    weekly  = load_weekly()
     catalog = pd.read_csv(CATALOG_FILE)
 
     train = weekly[weekly["ds"] <= TRAIN_END].copy()

@@ -45,6 +45,7 @@
 2. ✅ Synthetic data generator (realistic dispensing records, no real data needed)
 3. ✅ Core forecasting model pipeline (LightGBM, offline validation) — median MAPE 19.4% (chronic 13.1%, seasonal 27.9%)
 4. ✅ Basic dashboard skeleton (mock data, for demo purposes)
+4b. ✅ Data normalization layer (multi-source ingestion pipeline)
 5. 🔲 Real data ingestion pipeline (PMS exports from pilot pharmacies)
 6. 🔲 Hospital data integration (HL7/FHIR — hardest step, comes last in v1)
 7. 🔲 Recommendation + alert engine (layered on validated forecasts)
@@ -184,4 +185,13 @@ velozen-pharmacy/
   - Reads directly from `data/synthetic/` CSVs (forecasts, eval_metrics, feature_importance)
   - Plotly charts: MAPE histogram, actual vs forecast line chart, feature importance bar, bias scatter
   - Run: `streamlit run src/dashboard/app.py`
-- Step 4 complete. **Next:** Step 5 — real data ingestion pipeline (PMS exports from pilot pharmacies)
+- Step 4 complete.
+
+**Session 5: 5/31/26**
+- Built data normalization layer (`src/ingestion/`) — COMPLETE
+  - `normalize.py` — standard schema, NDC standardization, validation, `build_training_set()`
+  - `source_synthetic.py` — live adapter for existing synthetic data
+  - `source_synthea.py` — documented stub, ready for Synthea SD population data
+  - `source_cms.py` — documented stub, ready for CMS Medicaid Drug Utilization data
+  - `train_and_evaluate.py` updated to load data through normalization layer
+- Step 4b complete. **Next:** Run Synthea for SD population, implement `source_synthea.py`, retrain model
