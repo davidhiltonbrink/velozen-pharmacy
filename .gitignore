@@ -17,6 +17,9 @@ data/processed/
 # Synthea output — large generated files, regenerable with the JAR
 data/synthea/
 
+# CMS downloaded data — regenerable by running tools/download_cms_sd.py
+data/cms/
+
 # Large synthetic data files — regenerable by running src/generate_synthetic_data.py
 data/synthetic/dispensing_records.csv
 data/synthetic/inventory_snapshots.csv

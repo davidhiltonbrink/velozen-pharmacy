@@ -64,8 +64,9 @@ def load_weekly() -> pd.DataFrame:
 
     For now, only the synthetic source is active.
     """
-    from ingestion import source_synthea
+    from ingestion import source_synthea, source_cms
     SYNTHEA_DIR = os.path.join(DATA_DIR, "..", "synthea", "csv")
+    CMS_FILE    = os.path.join(DATA_DIR, "..", "cms", "sd_drug_utilization_2022_2024.csv")
 
     synthetic_df = source_synthetic.load(DISP_FILE, CATALOG_FILE)
     sources = [synthetic_df]
@@ -75,9 +76,18 @@ def load_weekly() -> pd.DataFrame:
         sources.append(synthea_df)
         print(f"  Synthea source: {len(synthea_df):,} rows, {synthea_df['ndc'].nunique()} SKUs")
 
+    if os.path.isfile(CMS_FILE):
+        cms_df = source_cms.load(CMS_FILE, CATALOG_FILE)
+        # Limit CMS to years before synthetic data begins (2024) to avoid
+        # contradictory signals on the same dates — CMS is flat within each
+        # quarter while synthetic has realistic week-to-week variability.
+        cms_df = cms_df[cms_df["ds"].dt.year < 2024].copy()
+        sources.append(cms_df)
+        print(f"  CMS source:     {len(cms_df):,} rows, {cms_df['ndc'].nunique()} SKUs")
+
     combined = build_training_set(
         sources,
-        source_weights={"synthetic": 0.5, "synthea": 0.8},
+        source_weights={"synthetic": 0.5, "synthea": 0.8, "cms_medicaid": 0.6},
     )
     # Rename 'fills' → 'y' as expected by the forecaster
     return combined.rename(columns={"fills": "y"})

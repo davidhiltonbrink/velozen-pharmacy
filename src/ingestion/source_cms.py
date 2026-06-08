@@ -1,46 +1,53 @@
 """
 Velozen AI — CMS Medicaid Drug Utilization source adapter.
 
-Transforms CMS Medicaid Drug Utilization data into normalized weekly dispensing
-records conforming to STANDARD_SCHEMA.
+Transforms CMS State Drug Utilization Data (SDUD) into normalized weekly
+dispensing records conforming to STANDARD_SCHEMA.
 
-Obtaining CMS data
-------------------
-1. Navigate to: https://data.medicaid.gov/datasets?theme=Drug%20Utilization
-2. Download "State Drug Utilization Data" for the target year(s).
-   Direct link pattern: https://data.medicaid.gov/api/1/datastore/query/<dataset-id>
-3. Filter for SD (state = "SD") to reduce file size before download, or filter
-   in this adapter using the `state` parameter.
+Downloading CMS data
+--------------------
+Data is available at data.medicaid.gov. A downloader script is provided in
+tools/download_cms_sd.py, or download manually:
 
-CMS Medicaid Drug Utilization CSV columns (relevant subset)
-------------------------------------------------------------
+  Dataset IDs (South Dakota):
+    2024: 61729e5a-7aa8-448c-8903-ba3e0cd0ea3c
+    2023: d890d3a9-6b00-43fd-8b31-fcba4c8e2909
+    2022: 200c2cba-e58d-4a95-aa60-14b99736808d
+
+  API: https://data.medicaid.gov/api/1/datastore/query/{id}/0
+       ?conditions[0][property]=state&conditions[0][value]=SD&conditions[0][operator]=%3D
+
+  Save combined CSV to: data/cms/sd_drug_utilization_2022_2024.csv
+
+CMS CSV columns (actual)
+------------------------
   utilization_type          : "FFSU" (fee-for-service) or "MCO" (managed care)
   state                     : two-letter state code
+  ndc                       : 11-digit NDC (no hyphens)
   labeler_code              : first 5 digits of NDC
   product_code              : digits 6-9 of NDC
-  package_size_code         : last 2 digits of NDC
-  year                      : calendar year
-  quarter                   : 1–4
-  product_name              : drug name (brand or generic, varies)
-  units_reimbursed          : total units dispensed
-  number_of_prescriptions   : total Rx claims
-  suppression_used          : "true" if data suppressed for privacy (small counts)
+  package_size              : last 2 digits of NDC
+  year                      : calendar year (string)
+  quarter                   : 1–4 (string)
+  suppression_used          : "true" if data suppressed (small counts — drop these)
+  product_name              : drug name (may have trailing spaces; brand or generic)
+  units_reimbursed          : total units dispensed (string float)
+  number_of_prescriptions   : total Rx claims (string int)
+  total_amount_reimbursed   : dollars (unused here)
 
-Known transform challenges
---------------------------
+Known limitations
+-----------------
 - Data is quarterly; this adapter distributes fills evenly across the 13 weeks
   of each quarter to produce weekly estimates.
-- NDC must be assembled from labeler_code + product_code + package_size_code
-  and zero-padded to 11 digits.
-- CMS data is at the state Medicaid population level — not a single pharmacy.
-  The `population` column is set to the SD Medicaid enrollment for the year,
-  which is used downstream to scale fills to a single-pharmacy level if needed.
-- `suppression_used = "true"` rows contain unreliable counts and are dropped.
-- CMS data covers Medicaid patients only (~20% of rural pharmacy volume).
-  Weight is set lower than real PMS data to reflect this partial coverage.
+- CMS data covers Medicaid patients only — roughly 20-25% of rural SD pharmacy
+  volume. Weight is set lower than real PMS data to reflect partial coverage.
+- product_name is not standardized — brand names, generics, and abbreviations
+  are all mixed. We use keyword matching against the SKU catalog (same approach
+  as source_synthea.py) to map to catalog NDCs.
+- Suppressed rows (suppression_used == "true") are dropped — counts unreliable.
 
-SD Medicaid enrollment reference (approximate)
------------------------------------------------
+SD Medicaid enrollment (approximate, for population column)
+------------------------------------------------------------
   2022: ~133,000 enrollees
   2023: ~150,000 enrollees
   2024: ~145,000 enrollees
@@ -48,11 +55,16 @@ SD Medicaid enrollment reference (approximate)
 
 from __future__ import annotations
 
+import re
 import pandas as pd
 
 from ingestion.normalize import standardize_ndc, to_monday, validate
+from ingestion.source_synthea import _build_catalog_index, _match_description, _infer_category
 
-# Approximate SD Medicaid enrollment by year — update as needed
+WEEKS_PER_QUARTER = 13
+
+_QUARTER_MONTH_START = {1: 1, 2: 4, 3: 7, 4: 10}
+
 _SD_MEDICAID_POPULATION = {
     2022: 133_000,
     2023: 150_000,
@@ -60,93 +72,140 @@ _SD_MEDICAID_POPULATION = {
 }
 _DEFAULT_POPULATION = 140_000
 
-_QUARTER_TO_MONTH_START = {1: 1, 2: 4, 3: 7, 4: 10}
-WEEKS_PER_QUARTER = 13
-
 
 def load(
     utilization_csv: str,
+    catalog_file: str,
     state: str = "SD",
-    years: list[int] | None = None,
+    utilization_types: list[str] | None = None,
+    catalog_only: bool = True,
+    scale_to_population: int = 5_000,
     source: str = "cms_medicaid",
     weight: float = 0.6,
 ) -> pd.DataFrame:
     """
-    Transform CMS Medicaid Drug Utilization data into normalized weekly dispensing records.
+    Load CMS Medicaid Drug Utilization data and return normalized weekly records.
 
     Parameters
     ----------
-    utilization_csv : path to downloaded CMS state drug utilization CSV
-    state           : two-letter state code to filter (default "SD")
-    years           : list of years to include; None = all years in file
-    source          : source tag for the 'source' column
-    weight          : base sample weight (lower than real PMS data — Medicaid
-                      only, quarterly estimates distributed to weekly)
+    utilization_csv      : path to downloaded CMS state drug utilization CSV
+    catalog_file         : path to VeloZen sku_catalog.csv (for NDC mapping)
+    state                : two-letter state code to filter (default "SD")
+    utilization_types    : ["FFSU", "MCO"] by default; pass ["FFSU"] for FFSU only
+    catalog_only         : if True, drop drugs that didn't match a catalog NDC
+    scale_to_population  : proportionally rescale fills from statewide Medicaid
+                           volume (~140k SD enrollees) down to a single-pharmacy
+                           patient base. Preserves demand patterns (which drugs
+                           are popular, seasonal trends) while keeping fill
+                           volumes in the same range as synthetic/Synthea sources.
+                           Default 5,000 matches the synthetic data patient base.
+    source               : source tag for the 'source' column
+    weight               : base sample weight
     """
-    raise NotImplementedError(
-        "CMS Medicaid adapter not yet implemented.\n"
-        "Steps to enable:\n"
-        "  1. Download CMS State Drug Utilization Data from data.medicaid.gov.\n"
-        "  2. Pass the CSV path to this function.\n"
-        "  3. Implement the transform below (see module docstring for approach).\n"
+    if utilization_types is None:
+        utilization_types = ["FFSU", "MCO"]
+
+    df = pd.read_csv(utilization_csv, dtype=str)
+    df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
+
+    # Filter to target state and utilization types
+    df = df[df["state"].str.upper() == state.upper()]
+    df = df[df["utilization_type"].isin(utilization_types)]
+
+    # Drop suppressed rows — counts are unreliable
+    df = df[df["suppression_used"].str.lower() != "true"]
+
+    # Parse numeric fields
+    df["year"]    = df["year"].astype(int)
+    df["quarter"] = df["quarter"].astype(int)
+    df["number_of_prescriptions"] = pd.to_numeric(
+        df["number_of_prescriptions"], errors="coerce"
+    ).fillna(0)
+
+    df = df[df["number_of_prescriptions"] > 0].copy()
+
+    # Standardize NDC
+    df["ndc"] = standardize_ndc(df["ndc"])
+    df["product_name"] = df["product_name"].str.strip()
+
+    # Map drugs to catalog NDCs via keyword matching
+    catalog = pd.read_csv(catalog_file)
+    catalog["ndc"] = standardize_ndc(catalog["ndc"])
+    catalog_index  = _build_catalog_index(catalog)
+
+    unique_drugs = df[["ndc", "product_name"]].drop_duplicates("ndc")
+    ndc_map: dict[str, dict] = {}
+    for _, row in unique_drugs.iterrows():
+        match = _match_description(str(row["product_name"]), catalog_index)
+        if match:
+            ndc_map[row["ndc"]] = {
+                "ndc":       match["ndc"],
+                "drug_name": match["drug_name"],
+                "category":  match["category"],
+                "catalog_hit": True,
+            }
+        else:
+            ndc_map[row["ndc"]] = {
+                "ndc":       row["ndc"],
+                "drug_name": row["product_name"][:60],
+                "category":  _infer_category(row["product_name"]),
+                "catalog_hit": False,
+            }
+
+    df["mapped_ndc"]      = df["ndc"].map(lambda n: ndc_map[n]["ndc"])
+    df["drug_name"]       = df["ndc"].map(lambda n: ndc_map[n]["drug_name"])
+    df["category"]        = df["ndc"].map(lambda n: ndc_map[n]["category"])
+    df["catalog_hit"]     = df["ndc"].map(lambda n: ndc_map[n]["catalog_hit"])
+
+    if catalog_only:
+        df = df[df["catalog_hit"]].copy()
+
+    if df.empty:
+        raise ValueError(f"No rows remain after filtering. Check state='{state}' and catalog_only={catalog_only}.")
+
+    # Distribute quarterly prescriptions across WEEKS_PER_QUARTER weeks
+    df["fills_per_week"] = df["number_of_prescriptions"] / WEEKS_PER_QUARTER
+
+    # Vectorized week expansion — repeat each row WEEKS_PER_QUARTER times,
+    # then compute the ds for each week offset.
+    df["quarter_start"] = df.apply(
+        lambda r: pd.Timestamp(year=r["year"], month=_QUARTER_MONTH_START[r["quarter"]], day=1),
+        axis=1,
     )
 
-    # --- Implementation outline (fill in when CMS data is downloaded) ---
-    #
-    # df = pd.read_csv(utilization_csv, dtype=str)
-    # df.columns = df.columns.str.lower().str.replace(" ", "_")
-    #
-    # # Filter
-    # df = df[df["state"] == state]
-    # df = df[df["suppression_used"].str.lower() != "true"]
-    # if years:
-    #     df = df[df["year"].astype(int).isin(years)]
-    #
-    # # Assemble 11-digit NDC
-    # df["ndc"] = standardize_ndc(df["labeler_code"] + df["product_code"] + df["package_size_code"])
-    #
-    # # Distribute quarterly prescriptions across 13 weeks
-    # df["year"]    = df["year"].astype(int)
-    # df["quarter"] = df["quarter"].astype(int)
-    # df["number_of_prescriptions"] = pd.to_numeric(df["number_of_prescriptions"], errors="coerce").fillna(0)
-    # df["fills_per_week"] = df["number_of_prescriptions"] / WEEKS_PER_QUARTER
-    #
-    # rows = []
-    # for _, row in df.iterrows():
-    #     month_start = _QUARTER_TO_MONTH_START[row["quarter"]]
-    #     qstart = pd.Timestamp(year=row["year"], month=month_start, day=1)
-    #     weeks  = pd.date_range(qstart, periods=WEEKS_PER_QUARTER, freq="7D")
-    #     for w in weeks:
-    #         rows.append({
-    #             "ds":        to_monday(pd.Series([w]))[0],
-    #             "ndc":       row["ndc"],
-    #             "drug_name": row["product_name"],
-    #             "fills":     row["fills_per_week"],
-    #         })
-    #
-    # weekly = pd.DataFrame(rows)
-    # weekly = _infer_category(weekly)
-    # weekly["source"]     = source
-    # weekly["population"] = weekly.apply(
-    #     lambda r: _SD_MEDICAID_POPULATION.get(r["ds"].year, _DEFAULT_POPULATION), axis=1
-    # )
-    # weekly["weight"] = weight
-    # return validate(weekly, source_label=source)
+    repeat_idx   = df.index.repeat(WEEKS_PER_QUARTER)
+    week_offsets = list(range(WEEKS_PER_QUARTER)) * len(df)
 
+    expanded = df.loc[repeat_idx, ["mapped_ndc", "drug_name", "category",
+                                   "fills_per_week", "quarter_start", "year"]].copy()
+    expanded = expanded.reset_index(drop=True)
+    expanded["ds"] = expanded["quarter_start"] + pd.to_timedelta(
+        [i * 7 for i in week_offsets], unit="D"
+    )
+    expanded["ds"] = to_monday(expanded["ds"])
 
-def _infer_category(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Infer drug category from drug name when source data doesn't provide it.
-    Extend keyword lists as needed.
-    """
-    chronic_keywords  = ["metformin", "lisinopril", "atorvastatin", "amlodipine",
-                         "omeprazole", "metoprolol", "losartan", "simvastatin",
-                         "levothyroxine", "gabapentin", "sertraline", "fluoxetine"]
-    seasonal_keywords = ["amoxicillin", "azithromycin", "albuterol", "oseltamivir",
-                         "cetirizine", "loratadine", "fluticasone", "prednisone"]
+    expanded = expanded.rename(columns={"mapped_ndc": "ndc"})
 
-    name = df["drug_name"].str.lower()
-    df["category"] = "other"
-    df.loc[name.str.contains("|".join(seasonal_keywords), na=False), "category"] = "seasonal"
-    df.loc[name.str.contains("|".join(chronic_keywords),  na=False), "category"] = "chronic"
-    return df
+    weekly = (
+        expanded
+        .groupby(["ds", "ndc", "drug_name", "category"])
+        .agg(fills=("fills_per_week", "sum"))
+        .reset_index()
+        .rename(columns={"fills_per_week": "fills"})
+    )
+
+    weekly["ds"]     = pd.to_datetime(weekly["ds"])
+    weekly["source"] = source
+    weekly["population"] = weekly["ds"].dt.year.map(
+        lambda y: _SD_MEDICAID_POPULATION.get(y, _DEFAULT_POPULATION)
+    )
+    weekly["weight"] = weight
+
+    # Scale fills proportionally from statewide Medicaid volume to single-pharmacy level.
+    if scale_to_population:
+        scale_factors = weekly["ds"].dt.year.map(
+            lambda y: scale_to_population / _SD_MEDICAID_POPULATION.get(y, _DEFAULT_POPULATION)
+        )
+        weekly["fills"] = weekly["fills"] * scale_factors
+
+    return validate(weekly, source_label=source)

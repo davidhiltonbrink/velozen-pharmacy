@@ -199,6 +199,13 @@ velozen-pharmacy/
 **Session 6: 6/7/26**
 - Downloaded Synthea JAR, generated 2,000-patient Aberdeen SD population (`data/synthea/csv/`)
 - Implemented `source_synthea.py` — keyword-based drug matching to catalog NDCs, vectorized week expansion, date/time normalization fix
-- Retrained model on combined synthetic + Synthea data — median MAPE 21.7% (slight regression expected; Synthea introduces realistic SD population variability vs hand-crafted curves)
-- Lag features now dominate over rolling means — Synthea adds week-to-week variability
-- **Next:** CMS Medicaid data integration, or move toward real pilot pharmacy data pipeline
+- Retrained model on combined synthetic + Synthea data — median MAPE 21.7%
+- Lag features dominate over rolling means — Synthea adds week-to-week variability
+
+**Session 7: 6/8/26**
+- Downloaded CMS SD Medicaid Drug Utilization data 2022-2024 (`data/cms/sd_drug_utilization_2022_2024.csv`)
+- Implemented `source_cms.py` — vectorized quarterly→weekly expansion, proportional scaling to single-pharmacy population
+- Key lesson: CMS data is statewide (~140k patients) so fills must be scaled to single-pharmacy level (~5k patients); also limit CMS to pre-2024 to avoid contradicting synthetic signal on same dates
+- Retrained on synthetic + Synthea + CMS (2022-2023 only): median MAPE 22.2% — `week_of_year` entered top 5 features for first time (CMS teaching real seasonal patterns)
+- Updated .gitignore to exclude large data files and tools/
+- **Next:** Real pilot pharmacy data pipeline (Step 5) — blocked pending PMS platform confirmation from founder
