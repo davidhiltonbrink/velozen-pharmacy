@@ -194,4 +194,11 @@ velozen-pharmacy/
   - `source_synthea.py` — documented stub, ready for Synthea SD population data
   - `source_cms.py` — documented stub, ready for CMS Medicaid Drug Utilization data
   - `train_and_evaluate.py` updated to load data through normalization layer
-- Step 4b complete. **Next:** Run Synthea for SD population, implement `source_synthea.py`, retrain model
+- Step 4b complete.
+
+**Session 6: 6/7/26**
+- Downloaded Synthea JAR, generated 2,000-patient Aberdeen SD population (`data/synthea/csv/`)
+- Implemented `source_synthea.py` — keyword-based drug matching to catalog NDCs, vectorized week expansion, date/time normalization fix
+- Retrained model on combined synthetic + Synthea data — median MAPE 21.7% (slight regression expected; Synthea introduces realistic SD population variability vs hand-crafted curves)
+- Lag features now dominate over rolling means — Synthea adds week-to-week variability
+- **Next:** CMS Medicaid data integration, or move toward real pilot pharmacy data pipeline

@@ -64,8 +64,21 @@ def load_weekly() -> pd.DataFrame:
 
     For now, only the synthetic source is active.
     """
+    from ingestion import source_synthea
+    SYNTHEA_DIR = os.path.join(DATA_DIR, "..", "synthea", "csv")
+
     synthetic_df = source_synthetic.load(DISP_FILE, CATALOG_FILE)
-    combined = build_training_set([synthetic_df])
+    sources = [synthetic_df]
+
+    if os.path.isdir(SYNTHEA_DIR):
+        synthea_df = source_synthea.load(SYNTHEA_DIR, CATALOG_FILE)
+        sources.append(synthea_df)
+        print(f"  Synthea source: {len(synthea_df):,} rows, {synthea_df['ndc'].nunique()} SKUs")
+
+    combined = build_training_set(
+        sources,
+        source_weights={"synthetic": 0.5, "synthea": 0.8},
+    )
     # Rename 'fills' → 'y' as expected by the forecaster
     return combined.rename(columns={"fills": "y"})
 
@@ -101,7 +114,13 @@ def run_pipeline():
     catalog = pd.read_csv(CATALOG_FILE)
 
     train = weekly[weekly["ds"] <= TRAIN_END].copy()
-    test  = weekly[(weekly["ds"] >= TEST_START) & (weekly["ds"] <= TEST_END)].copy()
+    # Evaluate on synthetic source only — it's our known ground truth.
+    # Synthea/CMS rows in the test window are training context, not evaluation targets.
+    test  = weekly[
+        (weekly["ds"] >= TEST_START) &
+        (weekly["ds"] <= TEST_END) &
+        (weekly["source"] == "synthetic")
+    ].copy()
 
     n_skus = train["ndc"].nunique()
     print(f"  {n_skus} SKUs | {train['ds'].nunique()} train weeks | {test['ds'].nunique()} test weeks")

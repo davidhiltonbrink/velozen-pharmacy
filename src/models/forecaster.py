@@ -20,6 +20,23 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import lightgbm as lgb
+from tqdm import tqdm
+
+
+def _tqdm_callback(num_boost_round: int):
+    """LightGBM callback that drives a tqdm progress bar."""
+    bar = tqdm(total=num_boost_round, desc="Training", unit="round", ncols=70)
+    prev = [0]
+
+    def callback(env):
+        step = env.iteration - prev[0]
+        bar.update(step)
+        prev[0] = env.iteration
+        if env.iteration >= num_boost_round - 1:
+            bar.close()
+
+    callback.order = 10
+    return callback
 
 
 # ---------------------------------------------------------------------------
@@ -149,13 +166,15 @@ class GlobalForecaster:
             "verbose":          -1,
             "n_jobs":           -1,
         }
+        num_rounds = 500
         dtrain = lgb.Dataset(X, label=y, feature_name=FEATURE_COLS)
         self._model = lgb.train(
             params,
             dtrain,
-            num_boost_round=500,
+            num_boost_round=num_rounds,
             callbacks=[lgb.early_stopping(50, verbose=False),
-                       lgb.log_evaluation(period=-1)],
+                       lgb.log_evaluation(period=-1),
+                       _tqdm_callback(num_rounds)],
             valid_sets=[dtrain],
         )
 
@@ -171,7 +190,15 @@ class GlobalForecaster:
         if self._model is None:
             raise RuntimeError("Call fit() before predict().")
 
-        running = self._history.copy()
+        # Trim history to only the rows needed for lag/rolling features per SKU.
+        # Carrying the full multi-source history (100k+ rows) through 26 steps is slow.
+        max_context = max(LAG_WEEKS) + max(ROLLING_WINS)  # 26 rows per SKU is enough
+        running = (
+            self._history.sort_values(["ndc", "ds"])
+            .groupby("ndc")
+            .tail(max_context)
+            .reset_index(drop=True)
+        )
         all_preds = []
 
         last_date = pd.to_datetime(running["ds"]).max()

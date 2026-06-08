@@ -48,9 +48,9 @@ def standardize_ndc(series: pd.Series) -> pd.Series:
 # ---------------------------------------------------------------------------
 
 def to_monday(series: pd.Series) -> pd.Series:
-    """Snap any date to the Monday of its ISO week."""
+    """Snap any date to the Monday of its ISO week, stripping time components."""
     dates = pd.to_datetime(series)
-    return dates - pd.to_timedelta(dates.dt.dayofweek, unit="D")
+    return (dates - pd.to_timedelta(dates.dt.dayofweek, unit="D")).dt.normalize()
 
 
 # ---------------------------------------------------------------------------

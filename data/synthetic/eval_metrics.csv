@@ -1,97 +1,97 @@
 ndc,drug_name,category,test_weeks,high_error_flag,mae,rmse,mape_pct,bias
-57237027101,Doxycycline 100mg,seasonal,26,True,21.9,23.59,119.2,21.9
-57237020201,Amoxicillin 875mg,seasonal,26,True,18.11,20.72,78.72,17.79
-57237023101,Oseltamivir 75mg,seasonal,26,True,10.37,11.42,76.92,8.83
-57237020101,Amoxicillin 500mg,seasonal,26,True,25.65,29.04,69.37,25.55
-57237026101,Prednisone 20mg,seasonal,26,True,14.19,16.46,64.85,11.19
-57237021101,Azithromycin 250mg,seasonal,26,True,8.46,10.01,43.55,4.94
-57237088101,Estradiol 1mg,other,26,True,9.56,11.19,41.86,9.1
-57237029101,Trimethoprim/Sulfa DS,seasonal,26,True,7.14,8.05,41.74,5.33
-57237024201,Loratadine 10mg,seasonal,26,True,29.13,34.93,41.67,-27.92
-57237022101,Albuterol Inhaler,seasonal,26,True,20.43,22.75,40.6,13.01
-57237030101,Promethazine 25mg,seasonal,26,True,8.57,9.73,40.5,7.77
-57237045101,Clonazepam 0.5mg,other,26,True,8.74,10.2,40.06,7.84
-57237040101,Ibuprofen 600mg,other,26,True,19.28,20.83,40.0,19.28
-57237028101,Cephalexin 500mg,seasonal,26,True,9.75,11.01,38.17,2.73
-57237069101,Apixaban 5mg,other,26,True,8.27,10.01,36.85,7.98
-57237050101,Insulin Glargine U-100,other,26,True,8.17,9.98,36.4,6.93
-57237052101,Methotrexate 2.5mg,other,26,True,3.9,4.57,36.14,1.66
-57237024301,Fexofenadine 180mg,seasonal,26,True,19.6,25.31,35.32,-15.96
-57237086101,Testosterone Cypionate,other,26,True,3.56,4.33,34.92,1.79
-57237025101,Fluticasone Nasal 50mcg,seasonal,26,True,15.28,18.67,33.82,-14.4
-57237031101,Ondansetron 4mg,seasonal,26,True,7.92,9.45,32.45,6.18
-57237019101,Alendronate 70mg,chronic,26,True,8.49,10.65,32.26,7.46
-57237024101,Cetirizine 10mg,seasonal,26,True,23.15,26.24,32.21,-10.71
-57237063101,Donepezil 10mg,other,26,True,7.67,9.4,31.28,6.38
-57237078101,Nystatin Oral Susp,other,26,True,3.47,4.31,30.79,3.23
-57237075101,Valacyclovir 500mg,other,26,True,4.88,6.23,28.63,2.07
-57237077101,Fluconazole 150mg,other,26,True,3.31,4.0,28.59,0.32
-57237013101,Furosemide 40mg,chronic,26,True,15.15,17.18,28.26,14.3
-57237041101,Cyclobenzaprine 10mg,other,26,True,8.01,10.17,27.33,1.43
-57237005201,Losartan 100mg,chronic,26,True,13.11,15.49,27.09,10.66
-57237047101,Zolpidem 10mg,other,26,True,6.78,8.1,25.78,1.85
-57237074101,Metronidazole 500mg,other,26,True,4.33,5.12,25.77,2.64
-57237084101,Lactulose Solution,other,26,True,2.92,3.58,25.61,1.12
-57237076101,Acyclovir 400mg,other,26,True,4.86,6.23,25.08,-0.02
-57237064101,Rosuvastatin 20mg,other,26,False,12.73,14.1,24.75,12.17
-57237072101,Nitrofurantoin 100mg,other,26,False,4.41,5.39,24.57,0.28
-57237079101,Latanoprost 0.005%,other,26,False,4.29,5.2,24.45,1.54
-57237014101,Carvedilol 6.25mg,chronic,26,False,11.73,13.65,24.27,9.36
-57237085101,Polyethylene Glycol 3350,other,26,False,6.36,8.05,24.0,4.35
-57237062101,Memantine 10mg,other,26,False,5.11,6.3,23.6,-1.05
-57237080101,Timolol 0.5% Eye,other,26,False,3.61,4.87,23.54,-1.51
-57237016101,Montelukast 10mg,chronic,26,False,19.88,24.32,23.47,-15.51
-57237060101,Duloxetine 30mg,other,26,False,6.75,8.16,23.43,3.28
-57237071101,Clindamycin 300mg,other,26,False,4.8,5.8,23.27,0.24
-57237044101,Methylprednisolone 4mg,other,26,False,6.35,7.78,23.2,-2.05
-57237051101,Insulin Aspart U-100,other,26,False,4.3,5.14,23.16,0.33
-57237049101,Linaclotide 145mcg,other,26,False,4.43,5.4,22.91,-0.65
-57237059101,Aripiprazole 10mg,other,26,False,4.63,5.4,22.84,-0.83
-57237017101,Glipizide 5mg,chronic,26,False,10.99,12.81,22.56,9.78
-57237057101,Topiramate 25mg,other,26,False,3.92,5.07,21.6,0.63
-57237073101,Ciprofloxacin 500mg,other,26,False,4.07,4.9,21.49,1.37
-57237003201,Amlodipine 10mg,chronic,26,False,12.18,13.9,21.2,11.49
-57237081101,Metoclopramide 10mg,other,26,False,3.88,4.65,21.05,1.35
-57237055101,Finasteride 5mg,other,26,False,5.52,6.4,20.49,-1.38
-57237011101,Bupropion SR 150mg,chronic,26,False,11.43,13.67,20.46,10.17
-57237087101,Progesterone 200mg,other,26,False,3.53,4.58,20.38,1.35
-57237043101,Oxycodone/APAP 5/325mg,other,26,False,3.74,4.8,20.14,1.37
-57237046101,Alprazolam 0.5mg,other,26,False,3.35,4.26,20.04,1.33
-57237042101,Tramadol 50mg,other,26,False,5.69,7.41,19.62,1.18
-57237066101,Clopidogrel 75mg,other,26,False,7.83,8.97,19.37,-4.99
-57237048101,Hydroxyzine 25mg,other,26,False,5.65,7.33,19.31,1.79
-57237082101,Dicyclomine 20mg,other,26,False,4.87,6.13,19.11,-1.0
-57237053101,Allopurinol 300mg,other,26,False,6.41,8.34,18.78,-0.51
-57237058101,Quetiapine 25mg,other,26,False,4.75,6.13,18.72,-0.93
-57237009201,Sertraline 100mg,chronic,26,False,9.61,11.34,18.67,6.85
-57237054101,Colchicine 0.6mg,other,26,False,4.99,6.51,18.15,-0.96
-57237068101,Rivaroxaban 20mg,other,26,False,5.18,6.71,17.43,-3.07
-57237061101,Venlafaxine ER 75mg,other,26,False,5.28,6.3,16.83,1.34
-57237008201,Metoprolol 50mg,chronic,26,False,10.63,11.89,16.4,6.6
-57237083101,Famotidine 40mg,other,26,False,5.66,6.87,16.26,-1.11
-57237056101,Sildenafil 50mg,other,26,False,2.95,3.81,16.21,0.45
-57237070101,Spironolactone 25mg,other,26,False,3.76,5.03,15.8,1.88
-57237004201,Omeprazole 40mg,chronic,26,False,10.01,12.87,15.6,6.61
-57237006201,Gabapentin 600mg,chronic,26,False,7.84,9.45,15.46,2.75
-57237007101,Levothyroxine 50mcg,chronic,26,False,12.51,14.61,14.22,7.07
-57237005101,Losartan 50mg,chronic,26,False,11.61,14.22,14.22,-1.19
-57237001201,Lisinopril 20mg,chronic,26,False,9.77,11.12,14.19,2.44
-57237065101,Ezetimibe 10mg,other,26,False,4.9,7.04,14.17,0.66
-57237018101,Tamsulosin 0.4mg,chronic,26,False,5.69,7.32,14.16,2.1
-57237089101,Norethindrone/EE,other,26,False,5.23,6.47,14.11,-1.28
-57237010101,Escitalopram 10mg,chronic,26,False,8.76,11.16,14.06,5.54
-57237009101,Sertraline 50mg,chronic,26,False,10.05,11.78,13.85,0.17
-57237002201,Atorvastatin 40mg,chronic,26,False,11.0,14.84,13.56,-1.88
-57237006101,Gabapentin 300mg,chronic,26,False,9.95,11.53,13.51,1.1
-57237012101,Hydrochlorothiazide 25mg,chronic,26,False,9.8,12.64,13.46,3.44
-57237015101,Pantoprazole 40mg,chronic,26,False,9.67,10.97,13.43,1.3
-57237004101,Omeprazole 20mg,chronic,26,False,15.97,19.66,13.38,-1.88
-57237003101,Amlodipine 5mg,chronic,26,False,12.7,14.86,13.22,3.46
-57237067101,Warfarin 5mg,other,26,False,4.56,5.77,12.98,0.05
-57237007201,Levothyroxine 100mcg,chronic,26,False,8.25,9.99,12.74,4.59
-57237001101,Lisinopril 10mg,chronic,26,False,13.83,16.34,12.66,5.23
-57237008101,Metoprolol 25mg,chronic,26,False,9.91,11.95,12.37,-0.99
-57237002101,Atorvastatin 20mg,chronic,26,False,11.62,14.64,12.14,8.92
-57237000201,Metformin 1000mg,chronic,26,False,10.87,12.92,12.12,-2.73
-57237040201,Ibuprofen 800mg,other,26,False,4.77,5.85,11.53,-1.0
-57237000101,Metformin 500mg,chronic,26,False,13.82,17.99,10.64,-1.82
+57237066101,Clopidogrel 75mg,other,26,True,20.87,29.07,55.54,20.07
+57237020201,Amoxicillin 875mg,seasonal,26,True,12.37,14.71,54.54,11.15
+57237024101,Cetirizine 10mg,seasonal,26,True,42.69,49.48,53.03,-40.28
+57237009101,Sertraline 50mg,chronic,26,True,37.57,41.88,49.38,-37.2
+57237025101,Fluticasone Nasal 50mcg,seasonal,26,True,21.35,24.73,47.97,-21.1
+57237021101,Azithromycin 250mg,seasonal,26,True,8.28,9.37,45.32,4.73
+57237000101,Metformin 500mg,chronic,26,True,55.57,60.68,41.54,-52.09
+57237020101,Amoxicillin 500mg,seasonal,26,True,16.83,21.83,40.94,6.57
+57237023101,Oseltamivir 75mg,seasonal,26,True,5.65,6.57,40.5,3.58
+57237067101,Warfarin 5mg,other,26,True,14.58,16.38,40.35,-14.58
+57237024301,Fexofenadine 180mg,seasonal,26,True,21.13,26.07,39.8,-15.46
+57237027101,Doxycycline 100mg,seasonal,26,True,6.99,8.09,38.82,3.67
+57237064101,Rosuvastatin 20mg,other,26,True,21.6,24.51,37.86,-21.05
+57237024201,Loratadine 10mg,seasonal,26,True,20.1,25.2,34.65,-7.94
+57237022101,Albuterol Inhaler,seasonal,26,True,18.85,25.68,34.16,0.94
+57237016101,Montelukast 10mg,chronic,26,True,28.52,34.66,32.56,-28.16
+57237002101,Atorvastatin 20mg,chronic,26,True,32.25,37.85,31.58,-29.03
+57237063101,Donepezil 10mg,other,26,True,9.65,12.38,31.1,-7.95
+57237089101,Norethindrone/EE,other,26,True,11.82,13.71,30.92,-11.52
+57237003101,Amlodipine 5mg,chronic,26,True,29.38,34.69,29.11,-28.04
+57237026101,Prednisone 20mg,seasonal,26,True,6.41,8.15,28.77,2.05
+57237007101,Levothyroxine 50mcg,chronic,26,True,27.0,33.21,28.76,-22.72
+57237086101,Testosterone Cypionate,other,26,True,3.04,3.47,27.61,0.1
+57237042101,Tramadol 50mg,other,26,True,9.39,11.52,27.6,-7.06
+57237030101,Promethazine 25mg,seasonal,26,True,5.85,6.91,27.35,2.98
+57237052101,Methotrexate 2.5mg,other,26,True,3.51,4.34,26.92,-2.45
+57237014101,Carvedilol 6.25mg,chronic,26,True,14.43,16.86,26.76,-13.83
+57237062101,Memantine 10mg,other,26,True,6.33,7.83,26.56,-5.03
+57237077101,Fluconazole 150mg,other,26,True,3.4,4.26,25.91,-1.25
+57237043101,Oxycodone/APAP 5/325mg,other,26,True,4.62,5.37,25.87,3.95
+57237029101,Trimethoprim/Sulfa DS,seasonal,26,True,5.03,6.12,25.84,0.15
+57237001101,Lisinopril 10mg,chronic,26,True,29.5,34.24,25.67,-25.62
+57237005101,Losartan 50mg,chronic,26,True,22.66,31.23,25.6,-20.63
+57237059101,Aripiprazole 10mg,other,26,False,5.52,6.38,24.93,-3.19
+57237013101,Furosemide 40mg,chronic,26,False,14.95,20.64,24.77,-8.7
+57237080101,Timolol 0.5% Eye,other,26,False,3.94,5.26,23.89,-3.43
+57237088101,Estradiol 1mg,other,26,False,6.73,8.22,23.82,-5.35
+57237040201,Ibuprofen 800mg,other,26,False,10.63,12.4,23.76,-10.4
+57237075101,Valacyclovir 500mg,other,26,False,4.2,5.63,23.73,0.78
+57237045101,Clonazepam 0.5mg,other,26,False,6.07,7.5,23.67,-4.35
+57237079101,Latanoprost 0.005%,other,26,False,4.31,5.04,23.38,0.3
+57237074101,Metronidazole 500mg,other,26,False,3.91,4.44,23.17,1.52
+57237028101,Cephalexin 500mg,seasonal,26,False,6.9,8.2,22.76,-2.13
+57237058101,Quetiapine 25mg,other,26,False,6.05,6.84,22.66,-3.11
+57237084101,Lactulose Solution,other,26,False,2.74,3.43,22.44,-0.16
+57237041101,Cyclobenzaprine 10mg,other,26,False,7.47,8.99,22.39,-3.73
+57237049101,Linaclotide 145mcg,other,26,False,4.62,5.12,22.18,-2.34
+57237072101,Nitrofurantoin 100mg,other,26,False,4.14,4.82,22.09,-0.52
+57237076101,Acyclovir 400mg,other,26,False,4.44,5.67,21.32,-1.12
+57237008101,Metoprolol 25mg,chronic,26,False,16.84,29.02,21.22,10.6
+57237019101,Alendronate 70mg,chronic,26,False,6.64,7.85,21.09,-5.32
+57237050101,Insulin Glargine U-100,other,26,False,4.82,6.0,21.02,1.8
+57237040101,Ibuprofen 600mg,other,26,False,11.08,14.64,20.68,-5.2
+57237082101,Dicyclomine 20mg,other,26,False,5.56,6.41,20.39,-2.94
+57237068101,Rivaroxaban 20mg,other,26,False,6.48,8.12,20.3,-5.87
+57237044101,Methylprednisolone 4mg,other,26,False,5.86,7.38,20.23,-2.98
+57237051101,Insulin Aspart U-100,other,26,False,4.16,4.86,20.16,-2.49
+57237078101,Nystatin Oral Susp,other,26,False,2.32,2.77,19.4,0.5
+57237046101,Alprazolam 0.5mg,other,26,False,3.42,4.03,19.29,0.24
+57237055101,Finasteride 5mg,other,26,False,5.1,6.22,19.23,-0.93
+57237071101,Clindamycin 300mg,other,26,False,4.13,5.38,18.78,-1.43
+57237056101,Sildenafil 50mg,other,26,False,3.97,4.5,18.68,-2.47
+57237012101,Hydrochlorothiazide 25mg,chronic,26,False,14.99,21.84,18.21,-11.95
+57237003201,Amlodipine 10mg,chronic,26,False,10.2,12.31,18.12,9.26
+57237087101,Progesterone 200mg,other,26,False,3.25,4.31,18.11,0.52
+57237057101,Topiramate 25mg,other,26,False,3.47,4.67,17.97,-1.39
+57237083101,Famotidine 40mg,other,26,False,6.65,7.94,17.82,-4.8
+57237069101,Apixaban 5mg,other,26,False,3.95,5.15,17.63,1.35
+57237081101,Metoclopramide 10mg,other,26,False,3.3,4.21,17.5,0.47
+57237054101,Colchicine 0.6mg,other,26,False,5.03,6.66,17.46,-2.21
+57237031101,Ondansetron 4mg,seasonal,26,False,4.6,5.77,17.39,0.56
+57237073101,Ciprofloxacin 500mg,other,26,False,3.52,4.73,17.2,-0.48
+57237047101,Zolpidem 10mg,other,26,False,4.96,6.19,16.79,-2.33
+57237011101,Bupropion SR 150mg,chronic,26,False,8.85,11.07,16.03,6.68
+57237053101,Allopurinol 300mg,other,26,False,5.76,7.34,15.79,-3.28
+57237060101,Duloxetine 30mg,other,26,False,4.88,6.01,15.68,-0.37
+57237061101,Venlafaxine ER 75mg,other,26,False,5.21,6.75,15.39,-2.43
+57237048101,Hydroxyzine 25mg,other,26,False,4.58,6.19,15.06,-0.96
+57237018101,Tamsulosin 0.4mg,chronic,26,False,6.63,7.86,15.02,-4.34
+57237070101,Spironolactone 25mg,other,26,False,3.6,4.94,14.76,0.41
+57237008201,Metoprolol 50mg,chronic,26,False,9.04,10.44,14.07,4.86
+57237065101,Ezetimibe 10mg,other,26,False,5.25,7.17,14.05,-3.05
+57237002201,Atorvastatin 40mg,chronic,26,False,11.06,14.36,13.83,-0.39
+57237085101,Polyethylene Glycol 3350,other,26,False,4.07,5.29,13.63,-1.42
+57237004201,Omeprazole 40mg,chronic,26,False,8.59,10.3,13.47,5.08
+57237000201,Metformin 1000mg,chronic,26,False,12.28,14.77,13.33,-7.45
+57237001201,Lisinopril 20mg,chronic,26,False,8.75,9.95,12.48,0.65
+57237006101,Gabapentin 300mg,chronic,26,False,9.58,11.79,12.41,-2.97
+57237005201,Losartan 100mg,chronic,26,False,6.86,8.71,12.39,-3.07
+57237017101,Glipizide 5mg,chronic,26,False,6.45,7.87,12.38,-1.23
+57237015101,Pantoprazole 40mg,chronic,26,False,9.0,10.4,12.07,-2.0
+57237007201,Levothyroxine 100mcg,chronic,26,False,7.43,9.34,11.61,3.85
+57237004101,Omeprazole 20mg,chronic,26,False,13.69,17.47,11.51,-1.61
+57237009201,Sertraline 100mg,chronic,26,False,6.59,8.94,11.37,-5.16
+57237010101,Escitalopram 10mg,chronic,26,False,6.91,9.16,11.1,3.99
+57237006201,Gabapentin 600mg,chronic,26,False,5.75,7.57,10.6,-2.62
