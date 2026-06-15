@@ -209,3 +209,16 @@ velozen-pharmacy/
 - Retrained on synthetic + Synthea + CMS (2022-2023 only): median MAPE 22.2% — `week_of_year` entered top 5 features for first time (CMS teaching real seasonal patterns)
 - Updated .gitignore to exclude large data files and tools/
 - **Next:** Real pilot pharmacy data pipeline (Step 5) — blocked pending PMS platform confirmation from founder
+
+**Session 8: 6/15/26**
+- Reviewed original blueprint Section 5 (10 developer steps) against current build status
+- Identified gap: Step 1 (secure database schema) was skipped in favor of getting the ML core working first
+- Built PostgreSQL database layer (`src/db/`) — COMPLETE
+  - `models.py` — SQLAlchemy ORM: pharmacies, drugs, dispensing_records, inventory_snapshots, forecasts, model_eval_metrics
+  - `connection.py` — engine + session factory, context manager, reads DATABASE_URL from .env
+  - `seed.py` — loads all existing CSVs into the database; safe to re-run
+  - Switched from psycopg2 to psycopg3 (`psycopg[binary]`) for Python 3.14 compatibility
+- Updated requirements.txt (added sqlalchemy, psycopg[binary], streamlit, tqdm; removed prophet/dash)
+- Updated .env.example with DATABASE_URL format
+- **Blocker:** PostgreSQL not yet installed on dev machine — user needs to install and create `velozen` database, then run `python src/db/seed.py`
+- **Next:** Once DB is running — wire dashboard to read from DB instead of CSVs, then build recommendation engine (Step 5)
