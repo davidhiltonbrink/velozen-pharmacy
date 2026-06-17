@@ -7,6 +7,7 @@ Run:
 """
 
 import os
+from pathlib import Path
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -16,7 +17,7 @@ import streamlit as st
 # Config
 # ---------------------------------------------------------------------------
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data", "synthetic")
+DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "synthetic"
 
 st.set_page_config(
     page_title="Velozen AI — Pharmacy Forecasting",
@@ -30,9 +31,9 @@ st.set_page_config(
 
 @st.cache_data
 def load_data():
-    forecasts = pd.read_csv(os.path.join(DATA_DIR, "forecasts.csv"), parse_dates=["ds"])
-    metrics   = pd.read_csv(os.path.join(DATA_DIR, "eval_metrics.csv"))
-    features  = pd.read_csv(os.path.join(DATA_DIR, "feature_importance.csv"))
+    forecasts = pd.read_csv(DATA_DIR / "forecasts.csv", parse_dates=["ds"])
+    metrics   = pd.read_csv(DATA_DIR / "eval_metrics.csv")
+    features  = pd.read_csv(DATA_DIR / "feature_importance.csv")
     return forecasts, metrics, features
 
 forecasts, metrics, features = load_data()
