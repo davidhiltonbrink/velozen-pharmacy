@@ -231,4 +231,29 @@ velozen-pharmacy/
   - Removed version pins from dashboard requirements to avoid Streamlit Cloud conflicts
   - Added `python-dotenv` to dashboard requirements
 - Dashboard live at: https://velozen-pharmacy-f557spnmjtarrt9aotd54z.streamlit.app/
-- **Next:** Wire dashboard to read from PostgreSQL instead of CSVs, then build recommendation engine (Step 5)
+
+**Session 10: 6/18/26**
+- Wired dashboard to read from PostgreSQL when `DATABASE_URL` is set, CSV fallback otherwise
+  - Uses `@st.cache_resource` for engine, `@st.cache_data(ttl=300)` for DB queries, `@st.cache_data` for CSV
+  - `feature_importance.csv` still loaded from file (not in DB schema — model artifact)
+  - Sidebar shows "Data source: PostgreSQL" or "Data source: CSV (local)"
+  - Streamlit Cloud deployment continues using CSV fallback until cloud DB is provisioned
+- Verified: DB path returns correct data (2,496 rows, 96 SKUs, 26 weeks, median MAPE 22.19%)
+- **Next:** Recommendation engine (Step 7 in blueprint) — or provision cloud Postgres (Neon/Supabase free tier) so Streamlit Cloud also reads from DB
+
+**Session 10 continued: 6/18/26**
+- Built recommendation engine (`src/models/recommender.py`) — COMPLETE
+  - Inputs: latest inventory snapshot, forecast demand, model accuracy metrics, drug catalog
+  - Outputs: per-SKU order qty, days of supply, stockout risk (HIGH/MEDIUM/LOW), expiration risk, reasoning
+  - Safety stock = lead-time demand × (1 + MAPE/100)
+  - Bias correction: partial (-bias × 0.5) to avoid amplifying systematic forecast error
+  - Rounds order qty to smallest pack size
+  - Uses `as_of_date` from latest inventory snapshot (not today's date) so date math is consistent with data
+- Added "Recommendations" page to dashboard
+  - KPI row: SKUs to order, high-risk count, expiration alerts, estimated order value
+  - Filterable/sortable table with color-coded risk badges
+  - Drug detail panel with reasoning text
+  - Parameters (target supply days, lead time) in sidebar expander
+- Synthetic data reveals overstock story: 77/96 SKUs at expiration risk, only 2 need reordering ($469 total)
+  - This is exactly the Velozen value prop: pharmacy has massively over-ordered slow-moving drugs
+- **Next:** Risk scoring module (Step 6) or alert engine, OR begin real data ingestion prep
