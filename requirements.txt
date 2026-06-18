@@ -1,7 +1,4 @@
-# Velozen AI — Dashboard dependencies (used by Streamlit Cloud)
-# For full local dev (model training, DB, notebooks): pip install -r requirements-dev.txt
-
-pandas==2.2.2
-numpy==1.26.4
-plotly==5.22.0
-streamlit==1.35.0
+pandas
+numpy
+plotly
+streamlit
