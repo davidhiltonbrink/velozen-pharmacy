@@ -220,5 +220,15 @@ velozen-pharmacy/
   - Switched from psycopg2 to psycopg3 (`psycopg[binary]`) for Python 3.14 compatibility
 - Updated requirements.txt (added sqlalchemy, psycopg[binary], streamlit, tqdm; removed prophet/dash)
 - Updated .env.example with DATABASE_URL format
-- **Blocker:** PostgreSQL not yet installed on dev machine — user needs to install and create `velozen` database, then run `python src/db/seed.py`
-- **Next:** Once DB is running — wire dashboard to read from DB instead of CSVs, then build recommendation engine (Step 5)
+
+**Session 9: 6/17/26**
+- Installed PostgreSQL 18 on dev machine; created `velozen` database
+- Added PostgreSQL bin to user PATH
+- Ran `python src/db/seed.py` — database fully seeded (96 drugs, 1 pharmacy, 2,496 forecasts, 96 eval metrics, 10,080 inventory rows, 67,635 dispensing records)
+- Fixed Streamlit Cloud deployment issues:
+  - Switched `DATA_DIR` from `os.path.dirname(__file__)` to `Path(__file__).resolve()` for reliable path resolution on cloud
+  - Split `requirements.txt` into lean dashboard version (4 packages) and `requirements-dev.txt` (full local dev stack)
+  - Removed version pins from dashboard requirements to avoid Streamlit Cloud conflicts
+  - Added `python-dotenv` to dashboard requirements
+- Dashboard live at: https://velozen-pharmacy-f557spnmjtarrt9aotd54z.streamlit.app/
+- **Next:** Wire dashboard to read from PostgreSQL instead of CSVs, then build recommendation engine (Step 5)
