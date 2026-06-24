@@ -96,28 +96,33 @@ def _overstock_score(
     0  → not overstocked (dos <= target)
     100 → severely overstocked with near-certain expiry waste
 
-    Two additive components (each capped at 50):
-    1. Overstock magnitude — how many multiples of the target is dos?
-       1× = 0 pts, 2× = 25 pts, 4× = 50 pts
-    2. Expiry pressure — what fraction of on-hand will expire unused?
-       waste_fraction = max(0, dos − days_until_expiry) / dos
+    Two additive components:
+    1. Overstock magnitude (0–75): log₂ curve so every doubling adds the same weight.
+       2× = 25 pts, 4× = 50 pts, 8× = 75 pts (capped).
+       A linear or hard-capped formula clusters all extreme overstock at the same
+       value; log₂ keeps them differentiated across the full severity range.
+    2. Expiry pressure (0–25): fraction of on-hand that will expire before it can
+       be dispensed × 25.
     """
+    import math
+
     if dos >= 999 or dos <= target:
         return 0.0
 
-    # Component 1: overstock magnitude
     overstock_ratio = dos / max(target, 1)
-    magnitude = float(np.clip((overstock_ratio - 1.0) / 3.0 * 50.0, 0.0, 50.0))
+
+    # Component 1: log₂ magnitude — continuous, never saturates below 8×
+    magnitude = float(min(75.0, math.log2(max(overstock_ratio, 1.0)) * 25.0))
 
     # Component 2: expiry pressure
     expiry_component = 0.0
     if days_until_expiry is not None and not (isinstance(days_until_expiry, float) and np.isnan(days_until_expiry)):
         due = float(days_until_expiry)
         if due <= 0:
-            expiry_component = 50.0                   # already expired
+            expiry_component = 25.0                   # already expired
         elif due < dos:
             waste_fraction = (dos - due) / dos
-            expiry_component = waste_fraction * 50.0
+            expiry_component = waste_fraction * 25.0
 
     return float(np.clip(magnitude + expiry_component, 0.0, 100.0))
 
