@@ -257,3 +257,18 @@ velozen-pharmacy/
 - Synthetic data reveals overstock story: 77/96 SKUs at expiration risk, only 2 need reordering ($469 total)
   - This is exactly the Velozen value prop: pharmacy has massively over-ordered slow-moving drugs
 - **Next:** Risk scoring module (Step 6) or alert engine, OR begin real data ingestion prep
+
+**Session 11: 6/23/26**
+- Built risk scoring module (`src/models/risk_scorer.py`) — COMPLETE
+  - `understock_score` (0–100): scales across three zones (comfortable → warning → critical) based on days_of_supply vs lead time + safety buffer; adjusted for MAPE uncertainty (+up to 10 pts) and bias direction
+  - `overstock_score` (0–100): log₂ magnitude (2×→25, 4×→50, 8×→75) + expiry waste pressure (up to +25); log₂ avoids hard saturation so extreme overstock stays differentiated
+  - `risk_label`: STOCKOUT_CRITICAL/WARNING, OVERSTOCK_CRITICAL/WARNING, OK
+  - Fixed bug: linear magnitude formula was clipping all drugs with >4× overstock at exactly 50; replaced with log₂ curve — zero SKUs at exactly 50 after fix
+- Updated `src/models/recommender.py` to expose `days_until_expiry` in output (needed by risk scorer)
+- Added "Risk Overview" page to dashboard
+  - KPI row: stockout critical/warning counts, overstock critical/warning counts
+  - Risk quadrant scatter plot: x=understock score, y=overstock score, dashed threshold lines at 40 and 75
+  - Side-by-side top-10 tables for each risk type with progress bar columns
+  - Full expandable SKU table with both scores
+- Synthetic data result: 26 OVERSTOCK_CRITICAL, 2 OVERSTOCK_WARNING, 0 stockout risk — consistent with overstock story
+- **Next:** Alert engine (email/in-dashboard notifications), real data ingestion prep, or cloud Postgres provisioning
