@@ -142,7 +142,7 @@ st.sidebar.caption(f"Data source: {_source_label}")
 
 page = st.sidebar.radio(
     "Navigate",
-    ["Overview", "Forecast Explorer", "SKU Detail", "Model Insights", "Recommendations"],
+    ["Overview", "Forecast Explorer", "SKU Detail", "Model Insights", "Recommendations", "Risk Overview"],
 )
 
 # ---------------------------------------------------------------------------
@@ -515,3 +515,190 @@ elif page == "Recommendations":
         st.info(row["reasoning"])
     else:
         st.info("No SKUs match the current filters.")
+
+
+# ---------------------------------------------------------------------------
+# Page: Risk Overview
+# ---------------------------------------------------------------------------
+
+elif page == "Risk Overview":
+    from models.recommender import compute_recommendations, DEFAULT_TARGET_SUPPLY_DAYS, DEFAULT_LEAD_TIME_DAYS
+    from models.risk_scorer import compute_risk_scores, CRITICAL_THRESHOLD, WARNING_THRESHOLD
+
+    st.title("Inventory Risk Overview")
+    st.caption("Numeric risk scores (0–100) for stockout and overstock across all SKUs.")
+
+    with st.sidebar.expander("Parameters", expanded=False):
+        target_days = st.slider("Target supply (days)", 14, 60, DEFAULT_TARGET_SUPPLY_DAYS, step=7)
+        lead_time   = st.slider("Lead time (days)", 1, 14, DEFAULT_LEAD_TIME_DAYS)
+
+    # Load, compute recommendations, then score
+    inventory_df, drugs_df, forecasts_ndc_df = load_recommendation_data()
+    as_of = None
+    if "snapshot_date" in inventory_df.columns:
+        as_of = pd.to_datetime(inventory_df["snapshot_date"].max()).date()
+
+    metrics_for_rec = metrics[["ndc", "mape_pct", "bias", "high_error_flag"]].copy() if "ndc" in metrics.columns else pd.DataFrame(columns=["ndc", "mape_pct", "bias", "high_error_flag"])
+
+    recs = compute_recommendations(
+        inventory_df=inventory_df,
+        forecasts_df=forecasts_ndc_df,
+        metrics_df=metrics_for_rec,
+        drugs_df=drugs_df,
+        target_supply_days=target_days,
+        lead_time_days=lead_time,
+        as_of_date=as_of,
+    )
+    scored = compute_risk_scores(recs, target_supply_days=target_days, lead_time_days=lead_time)
+
+    if as_of:
+        st.caption(f"Snapshot date: {as_of.strftime('%B %d, %Y')}")
+
+    # KPI row
+    stockout_crit = (scored["risk_label"] == "STOCKOUT_CRITICAL").sum()
+    stockout_warn = (scored["risk_label"] == "STOCKOUT_WARNING").sum()
+    overstock_crit = (scored["risk_label"] == "OVERSTOCK_CRITICAL").sum()
+    overstock_warn = (scored["risk_label"] == "OVERSTOCK_WARNING").sum()
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Stockout Critical", stockout_crit,  help="Understock score ≥ 75")
+    c2.metric("Stockout Warning",  stockout_warn,  help="Understock score 40–74")
+    c3.metric("Overstock Critical", overstock_crit, help="Overstock score ≥ 75")
+    c4.metric("Overstock Warning",  overstock_warn, help="Overstock score 40–74")
+
+    st.divider()
+
+    # Risk quadrant scatter
+    st.subheader("Risk Quadrant")
+    st.caption("Each dot is a SKU. Upper-left = overstock risk. Lower-right = stockout risk.")
+
+    LABEL_COLORS = {
+        "STOCKOUT_CRITICAL": "#d32f2f",
+        "STOCKOUT_WARNING":  "#f57c00",
+        "OVERSTOCK_CRITICAL":"#7b1fa2",
+        "OVERSTOCK_WARNING": "#1976d2",
+        "OK":                "#388e3c",
+    }
+    scored["_color_label"] = scored["risk_label"]
+
+    fig_scatter = px.scatter(
+        scored,
+        x="understock_score",
+        y="overstock_score",
+        color="_color_label",
+        color_discrete_map=LABEL_COLORS,
+        hover_data={"drug_name": True, "days_of_supply": ":.0f",
+                    "understock_score": ":.1f", "overstock_score": ":.1f",
+                    "_color_label": False},
+        labels={
+            "understock_score": "Understock Score (0–100)",
+            "overstock_score":  "Overstock Score (0–100)",
+            "_color_label":     "Risk Label",
+        },
+        size_max=12,
+    )
+    # Quadrant reference lines
+    for threshold, dash in [(WARNING_THRESHOLD, "dash"), (CRITICAL_THRESHOLD, "dot")]:
+        fig_scatter.add_vline(x=threshold, line_dash=dash, line_color="#aaa", line_width=1)
+        fig_scatter.add_hline(y=threshold, line_dash=dash, line_color="#aaa", line_width=1)
+
+    fig_scatter.update_traces(marker=dict(size=9, opacity=0.8))
+    fig_scatter.update_layout(
+        height=420,
+        margin=dict(t=20, b=20),
+        xaxis=dict(range=[-2, 105]),
+        yaxis=dict(range=[-2, 105]),
+        legend_title_text="Risk Label",
+    )
+    st.plotly_chart(fig_scatter, use_container_width=True)
+
+    st.divider()
+
+    # Side-by-side top tables
+    col_l, col_r = st.columns(2)
+
+    with col_l:
+        st.subheader("Top Stockout Risk")
+        top_under = (
+            scored[scored["understock_score"] > 0]
+            .nlargest(10, "understock_score")
+            [["drug_name", "days_of_supply", "understock_score", "risk_label"]]
+            .rename(columns={
+                "drug_name":        "Drug",
+                "days_of_supply":   "Days Supply",
+                "understock_score": "Understock Score",
+                "risk_label":       "Label",
+            })
+        )
+        if top_under.empty:
+            st.success("No stockout risk detected.")
+        else:
+            st.dataframe(
+                top_under,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Understock Score": st.column_config.ProgressColumn(
+                        "Understock Score", min_value=0, max_value=100, format="%.1f"
+                    ),
+                    "Days Supply": st.column_config.NumberColumn(format="%.0f"),
+                },
+            )
+
+    with col_r:
+        st.subheader("Top Overstock Risk")
+        top_over = (
+            scored[scored["overstock_score"] > 0]
+            .nlargest(10, "overstock_score")
+            [["drug_name", "days_of_supply", "overstock_score", "risk_label"]]
+            .rename(columns={
+                "drug_name":       "Drug",
+                "days_of_supply":  "Days Supply",
+                "overstock_score": "Overstock Score",
+                "risk_label":      "Label",
+            })
+        )
+        if top_over.empty:
+            st.success("No overstock risk detected.")
+        else:
+            st.dataframe(
+                top_over,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Overstock Score": st.column_config.ProgressColumn(
+                        "Overstock Score", min_value=0, max_value=100, format="%.1f"
+                    ),
+                    "Days Supply": st.column_config.NumberColumn(format="%.0f"),
+                },
+            )
+
+    st.divider()
+
+    # Full scored table
+    with st.expander("All SKUs — full risk table"):
+        all_table = (
+            scored[[
+                "drug_name", "category", "days_of_supply",
+                "understock_score", "overstock_score", "risk_label",
+            ]]
+            .sort_values("overstock_score", ascending=False)
+            .rename(columns={
+                "drug_name":       "Drug",
+                "category":        "Category",
+                "days_of_supply":  "Days Supply",
+                "understock_score":"Understock",
+                "overstock_score": "Overstock",
+                "risk_label":      "Label",
+            })
+        )
+        st.dataframe(
+            all_table,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Days Supply": st.column_config.NumberColumn(format="%.0f"),
+                "Understock":  st.column_config.ProgressColumn(min_value=0, max_value=100, format="%.1f"),
+                "Overstock":   st.column_config.ProgressColumn(min_value=0, max_value=100, format="%.1f"),
+            },
+        )

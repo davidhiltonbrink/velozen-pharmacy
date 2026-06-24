@@ -234,7 +234,8 @@ def compute_recommendations(
     return rec[[
         "ndc", "drug_name", "category",
         "on_hand_units", "forecast_weekly_demand",
-        "days_of_supply", "stockout_risk", "expiration_risk",
+        "days_of_supply", "days_until_expiry",
+        "stockout_risk", "expiration_risk",
         "recommended_order_qty", "order_value_usd",
         "mape_pct", "bias", "high_error_flag",
         "reasoning",
