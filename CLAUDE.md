@@ -272,3 +272,28 @@ velozen-pharmacy/
   - Full expandable SKU table with both scores
 - Synthetic data result: 26 OVERSTOCK_CRITICAL, 2 OVERSTOCK_WARNING, 0 stockout risk — consistent with overstock story
 - **Next:** Alert engine (email/in-dashboard notifications), real data ingestion prep, or cloud Postgres provisioning
+
+**Session 12: 6/29/26**
+- Built REST API layer (`src/api/`) — COMPLETE
+  - `main.py` — FastAPI app with 5 endpoints:
+    - `GET  /v1/health` — no auth required
+    - `GET  /v1/pharmacies/{pharmacy_id}/recommendations` — order recommendations
+    - `GET  /v1/pharmacies/{pharmacy_id}/risk-scores` — understock/overstock scores
+    - `GET  /v1/pharmacies/{pharmacy_id}/forecasts` — demand forecasts (filterable by NDC)
+    - `POST /v1/pharmacies/{pharmacy_id}/inventory` — PMS pushes live stock snapshots
+  - `schemas.py` — Pydantic request/response models; FastAPI auto-generates Swagger docs
+  - `auth.py` — `X-API-Key` header middleware; dev key `velozen-dev-key-2026` in `.env`
+  - CORS enabled (tighten to specific PMS domains before production)
+  - All endpoints call existing `recommender.py` / `risk_scorer.py` — no logic duplication
+- Added `fastapi==0.115.5` and `uvicorn[standard]==0.32.1` to `requirements-dev.txt`
+- Created `docs/pms-integration-overview.md` — plain-language doc for founder to share with pilot pharmacies and PMS partners; covers integration levels, data flow, compliance, and pilot timeline
+- Remaining work: deployment to cloud host + PMS-specific data adapter (both blocked on pilot pharmacy platform confirmation)
+
+**To run the API locally:**
+```
+uvicorn src.api.main:app --reload
+```
+- API base: http://localhost:8000
+- Swagger UI (interactive docs): http://localhost:8000/docs
+- In Swagger: click **Authorize** → enter `velozen-dev-key-2026` → then try any endpoint
+- pharmacy_id for the seeded test pharmacy (Aberdeen Family Pharmacy) is `1`
