@@ -23,5 +23,9 @@ faker==25.0.0
 tqdm==4.66.4
 requests==2.32.3
 
+# API
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+
 # Notebooks
 jupyter==1.0.0
